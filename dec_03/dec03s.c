@@ -2,8 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_X 10
-#define MAX_Y 10
+#define MAX_X 1024
+#define MAX_Y 1024
 
 int main(int argc, char* argv[]) {
     FILE *fp;
@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
 
     char s[1014];
 
-    fp = fopen("small", "r");
+    fp = fopen("input", "r");
 
     for (int i=0; i<MAX_X; i++) {
         for (int j=0; j<MAX_Y; j++) {
@@ -29,16 +29,16 @@ int main(int argc, char* argv[]) {
     // Read input from file and store in array
     while(fgets(buff, 30, fp) != NULL) {
         nbrOfInput++;
-        printf("%d - %s",nbrOfInput, buff);
+        
 
         // X value
         startPoint = strchr(buff, '@');
         endPoint = strchr(buff, ',');
         if (startPoint != NULL) {
             memcpy(subbuff, startPoint+2, endPoint-startPoint-2);
-            subbuff[endPoint-startPoint-1] = '\0';
+            subbuff[endPoint-startPoint-2] = '\0';
             x = atoi(subbuff);
-            printf("x = %d\n", x);
+            //printf("x = %d\n", x);
         }
 
         // Y value
@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
             memcpy(subbuff, startPoint+1, endPoint-startPoint-1);
             subbuff[endPoint-startPoint-1] = '\0';
             y = atoi(subbuff);
-            printf("y = %d\n", y);
+            //printf("y = %d\n", y);
         }
 
         // dx value
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
             memcpy(subbuff, startPoint+2, endPoint-startPoint-2);
             subbuff[endPoint-startPoint-2] = '\0';
             dx = atoi(subbuff);
-            printf("dx = %d\n", dx);
+            //printf("dx = %d\n", dx);
             //printf("dx = %s\n", subbuff);
         }
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
         startPoint = strchr(buff, 'x');
         if (startPoint != NULL) {
             dy = atoi(startPoint+1);
-            printf("dy = %d\n", dy);
+            //printf("dy = %d\n", dy);
             //printf("dy = %s\n", startPoint+1);
         }
         
@@ -79,6 +79,10 @@ int main(int argc, char* argv[]) {
             //printf("\n");
         }
 
+        if (nbrOfInput < 10) {
+            printf("%d;%d;%d;%d;", x, y, dx, dy);
+            printf("%s", buff);
+        }
     }
 
     // The answer
