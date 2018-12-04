@@ -2,96 +2,134 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define MAX_X 1024
-#define MAX_Y 1024
+#define MAX_ROWS 1060
+#define MAX_GUARDS 1000
+
+typedef struct guards{
+    int id;
+    int day;
+    int hour;
+    char schedule[64];
+    int sleep[59];
+} guards;
+
+int compare( const void* a, const void* b)
+{
+     guards int_a = * ( (guards*) a );
+     guards int_b = * ( (guards*) b );
+
+     if ( int_a.day == int_b.day ) {
+         if (int_a.hour == int_b.hour) {
+             return 0;
+         } else if (int_a.hour < int_b.hour) {
+            return -1;
+         }
+         else {
+            return 1;
+         }
+     }
+     else if ( int_a.day < int_b.day ) {
+         return -1;
+     }
+     else {
+         return 1;
+     }
+}
 
 int main(int argc, char* argv[]) {
     FILE *fp;
-    char buff[30];
-    char subbuff[30];
-    int inputArray[MAX_X][MAX_Y] = { 0 };
+    char buff[64];
+    guards inputArray[MAX_ROWS];
+    guards guardArray[MAX_GUARDS];
     int nbrOfInput = 0;
+    int nbrOfGuards = 0;
+
+    char *token;
 
     int x = 0, y = 0, dx = 0, dy = 0;
-    char *startPoint, *endPoint, *number;
     int answer = 0;
-
-    char s[1014];
 
     fp = fopen("input", "r");
 
-    for (int i=0; i<MAX_X; i++) {
-        for (int j=0; j<MAX_Y; j++) {
-            inputArray[i][j] = 0;
+    // Read input from file and store in array
+    while(fgets(buff, 64, fp) != NULL) {
+        nbrOfInput++;
+        strncpy(inputArray[nbrOfInput].schedule, buff, 64);
+   
+        printf("%s", buff);
+        /* get the first token */
+        token = strtok(buff, "-");
+
+        // Find date
+        token = strtok(NULL, "-");
+        inputArray[nbrOfInput].day = atoi(token)*100;
+        token = strtok(NULL, " ");
+        inputArray[nbrOfInput].day += atoi(token);
+        printf("%d\n", inputArray[nbrOfInput].day);
+
+        // Find hour
+        token = strtok(NULL, ":");
+        inputArray[nbrOfInput].hour = atoi(token)*100;
+        if (inputArray[nbrOfInput].hour == 0) {
+            inputArray[nbrOfInput].hour += 2400;
         }
+        token = strtok(NULL, "]");
+        inputArray[nbrOfInput].hour += atoi(token);
+        printf("%d\n", inputArray[nbrOfInput].hour);
+        //printf( " %s\n", token);
+    
+        //token = strtok(NULL, s);
     }
 
-    // Read input from file and store in array
-    while(fgets(buff, 30, fp) != NULL) {
-        nbrOfInput++;
-        
+    // Sort the list
+    qsort(inputArray, nbrOfInput, sizeof(guards), compare);
 
-        // X value
-        startPoint = strchr(buff, '@');
-        endPoint = strchr(buff, ',');
-        if (startPoint != NULL) {
-            memcpy(subbuff, startPoint+2, endPoint-startPoint-2);
-            subbuff[endPoint-startPoint-2] = '\0';
-            x = atoi(subbuff);
-            //printf("x = %d\n", x);
-        }
+    int guardId = 0;
+    int guardArrayId = 0;
+    int sleeps = 0;
+    int wakes = 0;
+    // The algorithm
+    for (int i=0;i<nbrOfInput;i++) {
 
-        // Y value
-        startPoint = strchr(buff, ',');
-        endPoint = strchr(buff, ':');
-        if (startPoint != NULL) {
-            memcpy(subbuff, startPoint+1, endPoint-startPoint-1);
-            subbuff[endPoint-startPoint-1] = '\0';
-            y = atoi(subbuff);
-            //printf("y = %d\n", y);
-        }
-
-        // dx value
-        startPoint = strchr(buff, ':');
-        endPoint = strchr(buff, 'x');
-        if (startPoint != NULL) {
-            memcpy(subbuff, startPoint+2, endPoint-startPoint-2);
-            subbuff[endPoint-startPoint-2] = '\0';
-            dx = atoi(subbuff);
-            //printf("dx = %d\n", dx);
-            //printf("dx = %s\n", subbuff);
-        }
-
-        // dy value
-        startPoint = strchr(buff, 'x');
-        if (startPoint != NULL) {
-            dy = atoi(startPoint+1);
-            //printf("dy = %d\n", dy);
-            //printf("dy = %s\n", startPoint+1);
-        }
-        
-        
-        for (int i=x; i<=dx+x-1; i++) {
-            for (int j=y; j<=dy+y-1; j++) {
-                inputArray[i][j]++;
-                //printf("%d", inputArray[i][j]);
+        if (strstr(inputArray[i].schedule, "Guard") != NULL) {
+            printf("%s", inputArray[i].schedule);
+            strncpy(buff, inputArray[i].schedule, 64);
+            token = strtok(buff, "#");
+            guardId = atoi(strtok(NULL, " "));
+            
+            while ((guardArray[guardArrayId].id != 0) && (guardArray[guardArrayId].id != guardId)) {
+                guardArrayId++;
             }
-            //printf("\n");
+            guardArray[guardArrayId].id = guardId;
+            nbrOfGuards++;
         }
-
-        if (nbrOfInput < 10) {
-            printf("%d;%d;%d;%d;", x, y, dx, dy);
-            printf("%s", buff);
+        else if (strstr(inputArray[i].schedule, "falls") != NULL) {
+            if (inputArray[i].hour > 2359) {
+                inputArray[i].hour -= 2400;
+            }
+            sleeps = inputArray[i].hour;
+        } 
+        else if (strstr(inputArray[i].schedule, "wakes") != NULL) {
+            if (inputArray[i].hour > 2359) {
+                inputArray[i].hour -= 2400;
+            }
+            wakes = inputArray[i].hour;
+            for (int ii=sleeps; ii<wakes; ii++) {
+                guardArray[guardArrayId].sleep[ii]++;
+            }
         }
     }
 
     // The answer
-    for (int i=0; i<MAX_X; i++) {
-        for (int j=0; j<MAX_Y; j++) {
-            if (inputArray[i][j] > 1) {
-                answer++;
-            }
+    for (int i=0; i<nbrOfInput; i++) {
+        //printf("%s",inputArray[i].schedule);
+    }
+    for (int i=0; i<nbrOfGuards; i++) {
+        printf("%d: ", guardArray[i].id);
+        for (int ii=0;ii<59;ii++) {
+            printf("%d",guardArray[i].sleep[ii]);
         }
+        printf("\n");
     }
 
     /*for (int i=0; i<MAX_X; i++) {
