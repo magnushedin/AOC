@@ -53,10 +53,10 @@ int main(int argc, char* argv[]) {
 
     // Read input from file and store in array
     while(fgets(buff, 64, fp) != NULL) {
-        nbrOfInput++;
+        
         strncpy(inputArray[nbrOfInput].schedule, buff, 64);
    
-        printf("%s", buff);
+        //printf("%s", buff);
         /* get the first token */
         token = strtok(buff, "-");
 
@@ -65,24 +65,29 @@ int main(int argc, char* argv[]) {
         inputArray[nbrOfInput].day = atoi(token)*100;
         token = strtok(NULL, " ");
         inputArray[nbrOfInput].day += atoi(token);
-        printf("%d\n", inputArray[nbrOfInput].day);
+        //printf("%d\n", inputArray[nbrOfInput].day);
 
         // Find hour
         token = strtok(NULL, ":");
         inputArray[nbrOfInput].hour = atoi(token)*100;
-        if (inputArray[nbrOfInput].hour == 0) {
+        /*if (inputArray[nbrOfInput].hour == 0) {
             inputArray[nbrOfInput].hour += 2400;
-        }
+        }*/
         token = strtok(NULL, "]");
         inputArray[nbrOfInput].hour += atoi(token);
-        printf("%d\n", inputArray[nbrOfInput].hour);
+        //printf("%d\n", inputArray[nbrOfInput].hour);
         //printf( " %s\n", token);
     
         //token = strtok(NULL, s);
+        nbrOfInput++;
     }
 
     // Sort the list
     qsort(inputArray, nbrOfInput, sizeof(guards), compare);
+
+    for (int i=0; i<nbrOfInput; i++) {
+        printf("qsort %s",inputArray[i].schedule);
+    }
 
     int guardId = 0;
     int guardArrayId = 0;
@@ -90,18 +95,36 @@ int main(int argc, char* argv[]) {
     int wakes = 0;
     // The algorithm
     for (int i=0;i<nbrOfInput;i++) {
+        printf("%s", inputArray[i].schedule);
 
         if (strstr(inputArray[i].schedule, "Guard") != NULL) {
-            printf("%s", inputArray[i].schedule);
             strncpy(buff, inputArray[i].schedule, 64);
             token = strtok(buff, "#");
             guardId = atoi(strtok(NULL, " "));
+
+            printf("guardId: %d, ", guardId);
             
-            while ((guardArray[guardArrayId].id != 0) && (guardArray[guardArrayId].id != guardId)) {
-                guardArrayId++;
+            for (int j=0; j<=nbrOfGuards;j++) {
+                //printf("%d - %d\n", guardArray[j].id, guardId);
+                if (guardArray[j].id == guardId) {
+                    guardArrayId = j;
+                    //printf("found duplicate\n");
+                    break;                    
+                }
+                else if (guardArray[j].id == 0) {
+                    guardArrayId = j;
+                    nbrOfGuards++;
+                    break;
+                    //printf("no duplicate\n");
+                }
             }
             guardArray[guardArrayId].id = guardId;
-            nbrOfGuards++;
+            printf("guardArrayId: %d\n", guardArrayId);
+
+            if (guardId == 2239) {
+                //printf("2239: i:%d, id:%d\n", i, guardId);
+            }
+
         }
         else if (strstr(inputArray[i].schedule, "falls") != NULL) {
             if (inputArray[i].hour > 2359) {
@@ -114,30 +137,43 @@ int main(int argc, char* argv[]) {
                 inputArray[i].hour -= 2400;
             }
             wakes = inputArray[i].hour;
+            printf("GuardArrayId: %d, sleeps: %d, wakes: %d\n", guardArrayId, sleeps, wakes);
             for (int ii=sleeps; ii<wakes; ii++) {
                 guardArray[guardArrayId].sleep[ii]++;
             }
         }
     }
 
+
     // The answer
-    for (int i=0; i<nbrOfInput; i++) {
-        //printf("%s",inputArray[i].schedule);
-    }
+
+    
+    int minutesAsleep = 0;
+    int mostSleep = 0;
     for (int i=0; i<nbrOfGuards; i++) {
+        minutesAsleep = 0;
+        mostSleep = 0;
         printf("%d: ", guardArray[i].id);
         for (int ii=0;ii<59;ii++) {
-            printf("%d",guardArray[i].sleep[ii]);
+            if (guardArray[i].sleep[ii] > guardArray[i].sleep[mostSleep]) {
+                mostSleep = ii;
+            }
+            minutesAsleep += guardArray[i].sleep[ii];
+            if (guardArray[i].sleep[ii] > 9) {
+                printf(";%d;",(guardArray[i].sleep[ii]));
+            }
+            else {
+                //printf("%d",(guardArray[i].sleep[ii]));
+                printf("*");
+            }
         }
-        printf("\n");
+        printf(", minutes asleep: %d, minute: %d, guardId: %d, mult: %d\n", minutesAsleep, mostSleep, guardArray[i].id, guardArray[i].id*mostSleep);
     }
 
-    /*for (int i=0; i<MAX_X; i++) {
-        for (int j=0; j<MAX_Y; j++) {
-            printf("%d", inputArray[i][j]);
-        }
-        printf("\n");
-    }*/
+
+    for (int i=0; i<nbrOfGuards; i++) {
+        //printf("%d - %d\n",i, guardArray[i].id);
+    }
 
     printf("The answer is: %d\n", answer);
 
