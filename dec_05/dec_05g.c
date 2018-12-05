@@ -6,7 +6,7 @@
 #define MAX_GUARDS 1000
 
 int comparePoly(char c1, char c2) {
-    if ((c1 - c2 == 32) || (c2 - c1 == 32) || (c1 - c2 == 0)) {
+    if ((c1 - c2 == 32) || (c2 - c1 == 32)) {
         return 1;
     }
     else {
@@ -14,34 +14,32 @@ int comparePoly(char c1, char c2) {
     }
 }
 
+// Remove char from array at given index
 void removePoly(int from, char* polyArray, int n) {
-
-    //printf("read: %d, removing: %c, writing: %c\n", from, polyArray[from], polyArray[from+2]);
-    //printf("(%c, %c), ", polyArray[from], polyArray[from+1]);
     for (int i=from; i<n+2; i++) {
         polyArray[i] = polyArray[i+2];
     }
 }
 
+// Removes all instances of a character from the array by reading and writing in the same array.
 void removeChar(char c, char* polyArray) {
     int write = 0;
     printf("Removing: %c\n", c);
 
-    for (int read=0; read<strlen(polyArray); read++) {
-        if (!comparePoly(polyArray[read], c)) {
+    for (int read=0; read<(strlen(polyArray)+1); read++) {
+        if ((polyArray[read] != c) && (polyArray[read] != (c+32)) && polyArray[read] != (c-32)) {
             polyArray[write] = polyArray[read];
             write++;
         }
     }
 }
 
+// Searches the polymer for reduction possibilities, ie a char next to it's capatalised version.
 int searchPoly(char * polyArray, int n) {
     int found = 0;
     int i = 0;
     while ((found == 0) && (i <= n)) {
-        //printf("searchPoly: %d\n", i);
         if (comparePoly(polyArray[i], polyArray[i+1])) {
-            //printf("%d - %d, (%c - %c)\n", polyArray[i], polyArray[i+1], polyArray[i], polyArray[i+1]);
             removePoly(i, polyArray, n);
             found = 1;
         }
@@ -57,37 +55,36 @@ int main(int argc, char* argv[]) {
     char testArray[MAX_CHAR];
     int nbrOfInput = 0;
     char *token;
+    long int min = 100000;
 
     int answer = 0;
 
-    fp = fopen("testinput", "r");
+    fp = fopen("input", "r");
 
     // Read input from file and store in array
     while(fgets(polym, MAX_CHAR, fp) != NULL) {
     }
 
-    printf("%s - strlen: %ld\n", polym, strlen(polym));
-
     for (char c_remove = 'A'; c_remove <= 'Z'; c_remove++)
     {
+        // Copy to test array because removing letters will destroy the array
         memcpy(testArray, polym, sizeof(char) * MAX_CHAR);
 
-        printf("%s - strlen: %ld\n", polym, strlen(testArray));
+        // Search for each letter and removes it
         removeChar(c_remove, testArray);
-        printf("%s - strlen: %ld\n", polym, strlen(testArray));
 
+        // Reduce the polymer
         int found = 1;
         while (found == 1)
         {
-            //printf("%s\n", testArray);
             found = searchPoly(testArray, strlen(testArray));
-            
-            //printf(".");
         }
-        printf("%s - strlen: %ld\n", polym, strlen(polym));
-        //printf("\n");
 
-        //printf("%s\n", polym);
-        printf("The answer is: %ld\n", strlen(testArray));
+        // Store minimum length of polymer
+        if (min > strlen(testArray)) {
+            min = strlen(testArray);
+            printf("New min: %ld\n", min);
+        }
     }
+    printf("Shortest array is: %ld\n", min);
 }
