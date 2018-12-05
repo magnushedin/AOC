@@ -6,7 +6,7 @@
 #define MAX_GUARDS 1000
 
 int comparePoly(char c1, char c2) {
-    if ((c1 - c2 == 32) || (c2 - c1 == 32)) {
+    if ((c1 - c2 == 32) || (c2 - c1 == 32) || (c1 - c2 == 0)) {
         return 1;
     }
     else {
@@ -23,12 +23,24 @@ void removePoly(int from, char* polyArray, int n) {
     }
 }
 
+void removeChar(char c, char* polyArray) {
+    int write = 0;
+    printf("Removing: %c\n", c);
+
+    for (int read=0; read<strlen(polyArray); read++) {
+        if (!comparePoly(polyArray[read], c)) {
+            polyArray[write] = polyArray[read];
+            write++;
+        }
+    }
+}
+
 int searchPoly(char * polyArray, int n) {
     int found = 0;
     int i = 0;
     while ((found == 0) && (i <= n)) {
         //printf("searchPoly: %d\n", i);
-        if (comparePoly(polyArray[i],polyArray[i+1])) {
+        if (comparePoly(polyArray[i], polyArray[i+1])) {
             //printf("%d - %d, (%c - %c)\n", polyArray[i], polyArray[i+1], polyArray[i], polyArray[i+1]);
             removePoly(i, polyArray, n);
             found = 1;
@@ -42,32 +54,40 @@ int main(int argc, char* argv[]) {
     FILE *fp;
     char buff[64];
     char polym[MAX_CHAR];
+    char testArray[MAX_CHAR];
     int nbrOfInput = 0;
     char *token;
 
     int answer = 0;
 
-    fp = fopen("input", "r");
+    fp = fopen("testinput", "r");
 
     // Read input from file and store in array
     while(fgets(polym, MAX_CHAR, fp) != NULL) {
     }
 
+    printf("%s - strlen: %ld\n", polym, strlen(polym));
 
+    for (char c_remove = 'A'; c_remove <= 'Z'; c_remove++)
+    {
+        memcpy(testArray, polym, sizeof(char) * MAX_CHAR);
 
-    printf("strlen: %ld\n", strlen(polym));
+        printf("%s - strlen: %ld\n", polym, strlen(testArray));
+        removeChar(c_remove, testArray);
+        printf("%s - strlen: %ld\n", polym, strlen(testArray));
 
-    int found = 1;
-    while (found == 1) {
+        int found = 1;
+        while (found == 1)
+        {
+            //printf("%s\n", testArray);
+            found = searchPoly(testArray, strlen(testArray));
+            
+            //printf(".");
+        }
+        printf("%s - strlen: %ld\n", polym, strlen(polym));
+        //printf("\n");
+
         //printf("%s\n", polym);
-        found = searchPoly(polym, strlen(polym));
-        //printf("strlen: %ld\n", strlen(polym));
-        //printf(".");
+        printf("The answer is: %ld\n", strlen(testArray));
     }
-    //printf("\n");
-
-
-    //printf("%s\n", polym);
-    printf("The answer is: %ld\n", strlen(polym));
-
 }
