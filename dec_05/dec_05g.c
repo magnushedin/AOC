@@ -34,7 +34,7 @@ void removeChar(char c, char* polyArray) {
     }
 }
 
-// Searches the polymer for reduction possibilities, ie a char next to it's capatalised version.
+// Searches the polymer for reduction possibilities, ie a char next to it's capitalised version.
 int searchPoly(char * polyArray, int n) {
     int found = 0;
     int i = 0;
