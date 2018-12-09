@@ -3,15 +3,24 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#define AB_LENGTH 10
-#define MAX_NODES 10
+#define AB_LENGTH 26
+#define MAX_NODES 26
+#define WORKERS 4
+#define MAX_TIME 1000
 
 typedef struct node {
     int used;
     char parent[AB_LENGTH];
     char child[AB_LENGTH];
     char name;
+    int processing;
 }node;
+
+typedef struct worker {
+    int id;
+    int available;
+    char working_with;
+}worker;
 
 // Read input from file and store in array
 void read_input(char* filename, node* node_array) {
@@ -27,10 +36,13 @@ void read_input(char* filename, node* node_array) {
     for (int i=0; i<AB_LENGTH; i++) {
         node_array[i].name = 'A'+i;
         node_array[i].used = 1;
-
+        node_array[i].processing = 0;
+        //printf("idx: %d: %c\n", i, node_array[i].name);
         for (int j=0; j<AB_LENGTH-1; j++) {
             node_array[i].parent[j] = '\0';
             node_array[i].child[j] = '\0';
+            //strncpy(node_array[i].parent[j], "\0", 1);
+            //strncpy(node_array[i].child[j], "\0", 1);
         }
     }
 
@@ -94,7 +106,7 @@ char find_next_node(node* node_array)
         node_array[shortest_node].used = 1;
         //printf("Will not use %c again\n", node_array[shortest_node].name);
     }
-    if (shortest_node != -1) {
+    if ((shortest_node != -1) && (strlen(node_array[shortest_node].parent) == 0) && (node_array[shortest_node].processing == 0)) {
         return node_array[shortest_node].name;
     }
     else {
@@ -130,16 +142,50 @@ int main(int argc, char* argv[]) {
     node node_array[MAX_NODES];
     char next_node;
     char answer[AB_LENGTH] = { '\0' };
+    worker  workers[WORKERS];
+    int time = 0;
 
-    read_input("testinput", node_array);
-
-    for (int i=0; i<AB_LENGTH; i++) {
-        //print_node_array(node_array);
-        next_node = find_next_node(node_array);
-        //printf("Next node: %c\n", next_node);
-        remove_char_from_node(node_array, next_node);
-        answer[i] = next_node;
+    // Init workers
+    for (int i=0; i<WORKERS; i++) {
+        workers[i].id = i;
+        workers[i].available = 1;
+        workers[i].working_with = '\0';
     }
 
+    // Read input
+    read_input("input", node_array);
+
+    // Schedule
+    printf("time worker1 worker2 worker3 worker4 done\n");
+    while (time < MAX_TIME) {
+        // Update workers
+        for (int i=0; i<WORKERS; i++) {
+            workers[i].available--;
+            //printf("worker: %d, avail: %d, working_with: %c\n", workers[i].id, workers[i].available, workers[i].working_with);
+        }
+
+        // Scheule work
+        for (int i=0; i<WORKERS; i++) {
+            if (workers[i].available <= 0) {
+                answer[strlen(answer)] = workers[i].working_with;
+                remove_char_from_node(node_array, workers[i].working_with);
+                next_node = find_next_node(node_array);
+                node_array[next_node-65].processing = 1;
+                
+                //printf("next node: %c, %d\n", next_node, next_node-64);
+                
+                workers[i].working_with = next_node;
+                workers[i].available = (next_node-64) + 60;
+                //printf("worker: %d deployed, working with: %c, available in: %d\n", workers[i].id, workers[i].working_with, workers[i].available);
+            }
+        }
+
+        printf("%d\t%c\t%c\t%c\t%c\t%s\n", time, workers[0].working_with, workers[1].working_with, workers[2].working_with, workers[3].working_with, answer);
+
+        // Update time
+        time++;
+    }
+
+    // Print answer
     printf("Answer: %s\n", answer);
 }
