@@ -92,9 +92,12 @@ int sum_metadata(int *node_array, int* idx_ptr, int depth)
     if (nbr_of_nodes > 0) {
         printf("%s-- have nodes -- \n", spacer);
         for (int i=0; i<nbr_of_metadata; i++) {
-            if (metadata_value[i] < nbr_of_nodes) {
+            if (metadata_value[i] <= nbr_of_nodes) {
                 printf("%sadding node %d with value %d\n", spacer, metadata_value[i], node_value[metadata_value[i]-1]);
                 sum_of_metadata += node_value[metadata_value[i]-1];
+            }
+            else {
+                printf("%scould not find node %d\n", spacer, metadata_value[i]);
             }
         }
     }
@@ -121,7 +124,7 @@ int main(int argc, char* argv[]) {
 
     idx_ptr = &idx;
 
-    nbr_of_inputs = read_input("testinput", node_array);
+    nbr_of_inputs = read_input("input", node_array);
 
     for (int i=0; i<nbr_of_inputs;i++) {
         //printf("%d ", node_array[i]);
