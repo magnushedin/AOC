@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Read input
-    read_input("input", node_array);
+    read_input("linda_input", node_array);
 
     // Schedule
     printf("time worker1 worker2 worker3 worker4 done\n");
