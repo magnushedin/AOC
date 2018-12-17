@@ -112,7 +112,7 @@ char coord(int x, int y, node* node_array, int nbr_of_nodes) {
             return '#';
         }
     }
-    return '.';
+    return ' ';
 }
 
 void print_map(int nbr_of_nodes, node *node_array)
