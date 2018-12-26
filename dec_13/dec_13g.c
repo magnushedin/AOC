@@ -33,6 +33,7 @@ typedef enum turn {
 typedef struct cart {
     int x;
     int y;
+    int crached;
     turn_t next_turn;
     direction_t direction;
     char trail;
@@ -81,9 +82,9 @@ void print_map(char map[Y_MAX][X_MAX], int y_max)
                 printf("%c", map[y][x]);
             }
         }
-        printf("\n");
+        //printf("\n");
     }
-    printf("====================================\n");
+    printf("\n====================================\n");
 }
 
 void next_xy(cart this_cart, int *next_x, int *next_y)
@@ -228,28 +229,53 @@ char get_cart_marker(cart this_cart)
     }
 }
 
-// Next tick
-int next_tick(char map[Y_MAX][X_MAX], cart* carts, int cart_max) {
+int crached_carts(cart carts[CARTS], char map[Y_MAX][X_MAX], int x, int y, int this_cart_id)
+{
+    int crached_cart_id;
+    for (int yi=0; yi < Y_MAX; yi++){
+        for (int xi=0; xi < X_MAX; xi++){
+            for (int cart=0; cart < CARTS; cart++) {
+                if (carts[cart].x == x && carts[cart].y == y) {
+                    carts[cart].crached = 1;
+                    if (cart != this_cart_id) {
+                        crached_cart_id = cart;
+                    }
+                    
+                }
+            }
+        }
+    }
+    return crached_cart_id;
+}
 
-    int x, y, next_x, next_y;
+// Next tick
+void next_tick(char map[Y_MAX][X_MAX], cart* carts, int cart_max) {
+
+    int x, y, next_x, next_y, crached_cart;
     char next_char;
     char next_trail;
 
     for (int cart=0; cart<cart_max; cart++) {
-        x = carts[cart].x;
-        y = carts[cart].y;
-        next_xy(carts[cart], &next_x, &next_y);
-        printf("cart: %d - (%d, %d), next: (%d, %d)\n", cart, x, y, next_x, next_y);
-        carts[cart].x = next_x;
-        carts[cart].y = next_y;
-        
-
-        next_char = map[next_y][next_x];
-        if (next_char == '<' || next_char == '>' || next_char == '^' || next_char == 'v') {
-            printf("Crach (%d, %d) (%d, %d)\n", x, y, next_x, next_y);
-            return 1;
+        if (carts[cart].crached == 0) {
+            x = carts[cart].x;
+            y = carts[cart].y;
+            next_xy(carts[cart], &next_x, &next_y);
+            carts[cart].x = next_x;
+            carts[cart].y = next_y;
+    
+            next_char = map[next_y][next_x];
+            //map[y][x] = carts[cart].trail;
         }
-        else {
+
+        printf("cart: %d - (%d, %d), next: (%d, %d), crached: %d, next_char: %c\n", cart, x, y, next_x, next_y, carts[cart].crached, next_char);
+        
+        if ((next_char == '<' || next_char == '>' || next_char == '^' || next_char == 'v') && (carts[cart].crached == 0)) {
+            printf("Crach (%d, %d)\n", next_x, next_y);
+            map[y][x] = carts[cart].trail;
+            crached_cart = crached_carts(carts, map, next_x, next_y, cart);
+            map[next_y][next_x] = carts[crached_cart].trail;
+        }
+        else if (carts[cart].crached == 0) {
             switch(map[next_y][next_x]) {
                 case '-':
                 case '|':
@@ -285,8 +311,6 @@ int next_tick(char map[Y_MAX][X_MAX], cart* carts, int cart_max) {
             }
         }
     }
-
-    return 0;
 }
 
 int cart_direction(char cart) {
@@ -318,6 +342,7 @@ int find_carts(char map[Y_MAX][X_MAX], cart carts[CARTS])
             if (is_cart(map[y][x])) {
                 carts[cart_id].x = x;
                 carts[cart_id].y = y;
+                carts[cart_id].crached = 0;
                 carts[cart_id].next_turn = LEFT;
                 carts[cart_id].direction = cart_direction(map[y][x]);
                 if (carts[cart_id].direction == EAST || carts[cart_id].direction == WEST){
@@ -337,7 +362,12 @@ void print_carts(cart carts[CARTS], int cart_max)
 {
     printf("---  Carts found on map ---\n");
     for (int i=0; i<cart_max; i++) {
-        printf("%d: (%d, %d), dir: %d, next_turn: %d, trail: %c\n", i, carts[i].x, carts[i].y, carts[i].direction, carts[i].next_turn, carts[i].trail);
+        if (carts[i].crached == 0) {
+            printf("%d: (%d, %d), dir: %d, next_turn: %d, trail: %c\n", i, carts[i].x, carts[i].y, carts[i].direction, carts[i].next_turn, carts[i].trail);
+        }
+        else {
+            printf("%d: (%d, %d), dir: %d, ---- crached -----\n", i, carts[i].x, carts[i].y, carts[i].direction );
+        }
     }
     printf("---\n");
 }
@@ -367,6 +397,26 @@ int compare_carts(const void* in_a, const void* in_b)
          
 }
 
+int nbr_of_carts_left(cart carts[CARTS], int cart_max)
+{
+    int nbr = 0;
+    for (int i=0; i<cart_max; i++) {
+        if (carts[i].crached == 0) {
+            nbr++;
+        }
+    }
+    return nbr;
+}
+
+int and_the_winner_is(cart carts[CARTS], int cart_max)
+{
+    for (int i=0; i < cart_max; i++){
+        if (carts[i].crached == 0) {
+            return i;
+        }
+    }
+}
+
 // Main function
 int main(int argc, char argv[])
 {
@@ -374,6 +424,7 @@ int main(int argc, char argv[])
     int cart_max = 0;
     int crach = 0;
     int tick_id = 0;
+    int the_winner;
     cart carts[CARTS];
     char map[Y_MAX][X_MAX] = {'\0'};
 
@@ -389,12 +440,15 @@ int main(int argc, char argv[])
     print_map(map, y_max);
     tick_id++;
 
-    while (!crach) {
+    while (nbr_of_carts_left(carts, cart_max) > 1) {
         qsort( carts, cart_max, sizeof(cart), compare_carts);
         print_carts(carts, cart_max);
         printf("Tick: %d\n", tick_id);
-        crach = next_tick(map, carts, cart_max);
-        print_map(map, y_max);
+        next_tick(map, carts, cart_max);
+        //print_map(map, y_max);
         tick_id++;
     }
+
+    the_winner = and_the_winner_is(carts, cart_max);
+    printf("(%d, %d)\n", carts[the_winner].x, carts[the_winner].y);
 }
