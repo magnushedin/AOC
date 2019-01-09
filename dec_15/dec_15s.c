@@ -21,6 +21,7 @@
 #define HP_START 200
 #define POWER_START 3
 #define IN_RANGE_MAX (CREATURES_MAX*8)
+#define REACHABLE_MAX IN_RANGE_MAX
 
 typedef struct creature {
     char type;
@@ -109,6 +110,30 @@ void print_map_in_range(char map[Y_MAX][X_MAX], int y_max, square in_range[IN_RA
     printf("\n====================================\n");
 }
 
+void print_map_reachable(char map[Y_MAX][X_MAX], int y_max, square reachable[REACHABLE_MAX], int nbrof_reachable)
+{
+    //printf("nbrof_in_range: %d\n", nbrof_in_range);
+    for (int y=0; y<y_max; y++) {
+        for (int x=0; x<X_MAX; x++) {
+            if (is_in_array(x, y, reachable, nbrof_reachable)) {
+                printf(KYEL "@" KNRM);
+                //printf("---%d,%d---\n",x, y);
+            }
+            else if (map[y][x] == 'G') {
+                printf(KRED "%c" KNRM, map[y][x]);
+            }
+            else if (map[y][x] == 'E') {
+                printf(KCYN "%c" KNRM, map[y][x]);
+            }
+            else {
+                printf("%c", map[y][x]);
+            }
+        }
+        //printf("\n");
+    }
+    printf("\n====================================\n");
+}
+
 int find_creatures(char map[Y_MAX][X_MAX], creature creatures[CREATURES_MAX])
 {
     int nbrof_creatures = 0;
@@ -153,6 +178,14 @@ void print_in_range(square in_range[IN_RANGE_MAX], int nbrof_in_range)
     printf("--- Squares in range ---\n");
     for (int i=0; i<nbrof_in_range; i++) {
         printf("%d: (%d,%d)\n", i, in_range[i].x, in_range[i].y);
+    }
+}
+
+void print_reachable(square reachable[REACHABLE_MAX], int nbrof_reachable)
+{
+    printf("--- Squares that are reachable ---\n");
+    for (int i=0; i<nbrof_reachable; i++) {
+        printf("%d: (%d,%d)\n", i, reachable[i].x, reachable[i].y);
     }
 }
 
@@ -221,16 +254,33 @@ int find_in_range(square in_range[IN_RANGE_MAX], char map[Y_MAX][X_MAX], creatur
     return nbrof_in_range;
 }
 
+int find_reachable(square reachable[REACHABLE_MAX], char map[Y_MAX][X_MAX], square in_range[IN_RANGE_MAX], int nbrof_in_range, int x, int y)
+{
+    int nbrof_reachable = 0;
+
+    for (int i=0; i<nbrof_in_range; i++) {
+
+    }
+
+    reachable[0].x = 3;
+    reachable[0].y = 1;
+    nbrof_reachable++;
+    
+    return nbrof_reachable;
+}
+
 // Main function
 int main(int argc, char* argv[])
 {
     char map[Y_MAX][X_MAX] = {'.'};
     creature creatures[CREATURES_MAX];
     square in_range[IN_RANGE_MAX];
+    square reachable[REACHABLE_MAX];
     
     int y_max;
     int nbrof_creatures = 0;
     int nbrof_in_range = 0;
+    int nbrof_reachable = 0;
     int this_creature = 0;
 
     y_max = read_input(FILENAME, map);
@@ -241,7 +291,14 @@ int main(int argc, char* argv[])
     print_creatures(creatures);
 
     // The game
+
+    // Squares that are in range
     nbrof_in_range = find_in_range(in_range, map, creatures, this_creature, nbrof_creatures);
     print_in_range(in_range, nbrof_in_range);
     print_map_in_range(map, y_max, in_range, nbrof_in_range);
+
+    // Squares that are reachable
+    nbrof_reachable = find_reachable(reachable, map, in_range, nbrof_in_range, creatures[this_creature].x, creatures[this_creature].y);
+    print_reachable(reachable, nbrof_reachable);
+    print_map_reachable(map, y_max, reachable, nbrof_reachable);
 }
