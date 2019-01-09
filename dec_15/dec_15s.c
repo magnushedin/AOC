@@ -87,10 +87,12 @@ int is_in_array(int x, int y, square in_range[IN_RANGE_MAX], int nbrof_in_range)
 
 void print_map_in_range(char map[Y_MAX][X_MAX], int y_max, square in_range[IN_RANGE_MAX], int nbrof_in_range)
 {
+    //printf("nbrof_in_range: %d\n", nbrof_in_range);
     for (int y=0; y<y_max; y++) {
         for (int x=0; x<X_MAX; x++) {
             if (is_in_array(x, y, in_range, nbrof_in_range)) {
                 printf(KYEL "?" KNRM);
+                //printf("---%d,%d---\n",x, y);
             }
             else if (map[y][x] == 'G') {
                 printf(KRED "%c" KNRM, map[y][x]);
@@ -150,8 +152,7 @@ void print_in_range(square in_range[IN_RANGE_MAX], int nbrof_in_range)
 {
     printf("--- Squares in range ---\n");
     for (int i=0; i<nbrof_in_range; i++) {
-        printf("(%d,%d)\n", in_range[i].x, in_range[i].y);
-        i++;
+        printf("%d: (%d,%d)\n", i, in_range[i].x, in_range[i].y);
     }
 }
 
