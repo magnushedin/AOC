@@ -16,13 +16,32 @@ class inst:
         return self.signal_out.rstrip("\n\r")
 
     def get_value(self):
-        return self.value
+        return int(self.value)
 
     def get_operator(self):
         return self.operator
+        
+    def get_calculated_value(self, network):
+        if self.operator == "assignment":
+            value = network[self.signal_in[0]]
+        elif self.operator == "NOT":
+            value = ~ network[self.signal_in[0]]
+        elif self.operator == "LSHIFT":
+            value = network[self.signal_in[0]] << self.shift
+        elif self.operator == "RSHIFT":
+            value = network[self.signal_in[0]] >> self.shift
+        elif self.operator == "OR":
+            value = network[self.signal_in[0]] | network[self.signal_in[1]]
+        elif self.operator == "AND":
+            if self.get_nbr_signals_in() > 1:
+                value = network[self.signal_in[0]] & network[self.signal_in[1]]
+            else:
+                value = network[self.signal_in[0]] & self.get_value()
+        
+        return value
     
     def set_shift(self,shift):
-        self.shift = shift
+        self.shift = int(shift)
 
     def get_shift(self):
         return self.shift
@@ -54,7 +73,7 @@ def parse_data(raw_data):
             if signal_in.isnumeric():
                 instructions.append(inst([], signal_out, signal_in, "NOT"))
             else:
-                instructions.append(inst([signal_in], signal_out, None, "NOT"))
+                instructions.append(inst([signal_in], signal_out, 0, "NOT"))
             # print("in: {signal_in}, out: {out}".format(signal_in=signal_in, out=signal_out))
         # Instruction SHIFT
         elif ("RSHIFT" in instruction) or ("LSHIFT" in instruction):
@@ -69,8 +88,8 @@ def parse_data(raw_data):
             if signal_in.isnumeric():
                 instructions.append(inst([], signal_out, signal_in, instr))
             else:
-                instructions.append(inst([signal_in], signal_out, None, instr))
-            instructions[-1].set_shift = shift
+                instructions.append(inst([signal_in], signal_out, 0, instr))
+            instructions[-1].set_shift(shift)
                 
             #print("in: {signal_in}, shift: {shift}, out: {signal_out}".format(signal_in=signal_in, shift=shift, signal_out=signal_out))
         # Instruction AND/OR
@@ -88,7 +107,7 @@ def parse_data(raw_data):
             elif signal_in[1].isnumeric():
                 instructions.append(inst([signal_in[0]], signal_out, signal_in[1], instr))
             else:
-                instructions.append(inst(signal_in, signal_out, None, instr))
+                instructions.append(inst(signal_in, signal_out, 0, instr))
             
         # Instruction Assignment
         else:
@@ -99,7 +118,7 @@ def parse_data(raw_data):
                 instructions.append(inst([], tmp[1], tmp[0], "assignment"))
             else:
                 #print("Signal assignment")
-                instructions.append(inst([tmp[0]], tmp[1], None, "assignment"))
+                instructions.append(inst([tmp[0]], tmp[1], 0, "assignment"))
 
     return instructions
 
@@ -139,7 +158,7 @@ def main(filename):
             elif missing_signals_in_network(instruction.get_signal_in(), network):
                 print("- {instruction}     \t- in: {signals_in}, out: {signals_out}, value: {value}, shift: {shift}".format(instruction=instruction.get_operator(), signals_in=instruction.get_signal_in(), signals_out=instruction.get_signal_out(), value=instruction.get_value(), shift=instruction.get_shift()))
                 # print("-- All missing signals found in network")
-                network[instruction.get_signal_out()] = instruction.get_value()
+                network[instruction.get_signal_out()] = instruction.get_calculated_value(network)
                 instructions.pop(idx)
 
     print("--- Signals in network (count: {})---".format(len(network.keys())))
@@ -171,3 +190,4 @@ def main(filename):
 if __name__ == "__main__":
     filename = "input"
     main(filename)
+    # 1674 -> b
