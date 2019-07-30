@@ -4,6 +4,7 @@ class inst:
         self.signal_out = signal_out
         self.value = value
         self.operator = operator
+        self.shift = None
 
     def get_nbr_signals_in(self):
         return len(self.signal_in)
@@ -23,6 +24,8 @@ class inst:
     def set_shift(self,shift):
         self.shift = shift
 
+    def get_shift(self):
+        return self.shift
 
 def read_file(filename):
     f = open(filename)
@@ -66,7 +69,7 @@ def parse_data(raw_data):
             if signal_in.isnumeric():
                 instructions.append(inst([], signal_out, signal_in, instr))
             else:
-                instructions.append(inst(signal_in, signal_out, None, instr))
+                instructions.append(inst([signal_in], signal_out, None, instr))
             instructions[-1].set_shift = shift
                 
             #print("in: {signal_in}, shift: {shift}, out: {signal_out}".format(signal_in=signal_in, shift=shift, signal_out=signal_out))
@@ -101,9 +104,13 @@ def parse_data(raw_data):
     return instructions
 
 def missing_signals_in_network(signals_in, network):
+    tmp = ""
+    if len(signals_in) > 1:
+        tmp = signals_in[0]
     for signal in signals_in:
         if not signal in network:
             return False
+    print("Found: {signal1} {signal2}".format(signal1=tmp, signal2=signal))
     return True
 
 
@@ -112,34 +119,45 @@ def main(filename):
     raw_data = read_file(filename)
     instructions = parse_data(raw_data)
 
-    for dummy in range(20):
+    instructions_left = 1000
+
+    for dummy in range(400):
+        if instructions_left == len(instructions) or len(instructions) == 0:
+            print("Instructions not decreasing, qutiting")
+            break
+        instructins_left = len(instructions)
         print("Going through instructions, iter: ({dummy}), instructions left: {length}".format(dummy=dummy, length=len(instructions)))
+        # print("Signals in network: {}".format(network.keys()))
         for idx, instruction in enumerate(instructions):
 
             if instruction.get_nbr_signals_in() == 0:
                 # Debug print the instruction
-                print("- Found Instruction: {} - {nbr_signals}".format(instruction.get_operator(),
-                                                           nbr_signals=instruction.get_nbr_signals_in()))
-                print("-- No input signals, output: {signal_out} ".format(signal_out=instruction.get_signal_out()))
+                print("- {instruction}\t- in: {signals_in}, out: {signals_out}, value: {value}".format(instruction=instruction.get_operator(), signals_in=instruction.get_signal_in(), signals_out=instruction.get_signal_out(), value=instruction.get_value()))
+                # print("-- No input signals, output: {signal_out} ".format(signal_out=instruction.get_signal_out()))
                 network[instruction.get_signal_out()] = instruction.get_value()
                 instructions.pop(idx)
             elif missing_signals_in_network(instruction.get_signal_in(), network):
-                print("- Found Instruction: {} - {nbr_signals}, {signals}".format(instruction.get_operator(),
-                                                               nbr_signals=instruction.get_nbr_signals_in(), signals=instruction.get_signal_in()))
-                print("-- All missing signals found in network")
+                print("- {instruction}     \t- in: {signals_in}, out: {signals_out}, value: {value}, shift: {shift}".format(instruction=instruction.get_operator(), signals_in=instruction.get_signal_in(), signals_out=instruction.get_signal_out(), value=instruction.get_value(), shift=instruction.get_shift()))
+                # print("-- All missing signals found in network")
                 network[instruction.get_signal_out()] = instruction.get_value()
                 instructions.pop(idx)
 
+    print("--- Signals in network (count: {})---".format(len(network.keys())))
     for key in network.keys():
         print("{key}: {value}".format(key=key, value=network[key]))
 
-    print("Length of array with instrucitons: {length}".format(
+    print("--- Length of array with instrucitons ---\n Lenght: {length}".format(
         length=len(instructions)))
 
-    print("--- Missing in signals ---")
+    tmp = []
     for instruction in instructions:
-        print("{signal}".format(signal=instruction.get_signal_in()))
-
+        for signal in instruction.get_signal_in():
+            if not signal in tmp:
+                tmp.append(signal)
+        # print("{signal}".format(signal=instruction.get_signal_in()))
+    print("--- Missing in signals (count: {}) ---".format(len(tmp)))
+    print(tmp)
+    
 ''' # This is to be used in the final solution for formating the output correctly
         # Debug print content of the network dictionary
         for key in network.keys():
@@ -151,5 +169,5 @@ def main(filename):
 '''
 
 if __name__ == "__main__":
-    filename = "test_input"
+    filename = "input"
     main(filename)
