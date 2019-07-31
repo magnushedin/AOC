@@ -20,7 +20,9 @@ class inst:
 
     def get_operator(self):
         return self.operator
-        
+    
+    # Functions for calculating the signal value from the input
+    # with the given operator
     def get_calculated_value(self, network):
         if self.operator == "assignment":
             value = network[self.signal_in[0]]
@@ -39,12 +41,15 @@ class inst:
                 value = network[self.signal_in[0]] & self.get_value()
         
         return value
-    
+
+    # If the operator is a SHIFT operator the number of steps
+    # needs to be specified with this function
     def set_shift(self,shift):
         self.shift = int(shift)
 
     def get_shift(self):
         return self.shift
+
 
 def read_file(filename):
     f = open(filename)
@@ -60,9 +65,6 @@ def parse_data(raw_data):
 
     for instruction in raw_data:
 
-        # Debug print the instruction
-        # print("Instruction: {}".format(instruction), end = '')
-
         # Instruction NOT
         if "NOT" in instruction:
             # print("Found NOT instruction")
@@ -75,6 +77,7 @@ def parse_data(raw_data):
             else:
                 instructions.append(inst([signal_in], signal_out, 0, "NOT"))
             # print("in: {signal_in}, out: {out}".format(signal_in=signal_in, out=signal_out))
+
         # Instruction SHIFT
         elif ("RSHIFT" in instruction) or ("LSHIFT" in instruction):
             #print("Found SHIFT instruction")
@@ -92,6 +95,7 @@ def parse_data(raw_data):
             instructions[-1].set_shift(shift)
                 
             #print("in: {signal_in}, shift: {shift}, out: {signal_out}".format(signal_in=signal_in, shift=shift, signal_out=signal_out))
+
         # Instruction AND/OR
         elif ("AND" in instruction) or ("OR" in instruction):
             #print("Found AND/OR instruction")
@@ -122,6 +126,8 @@ def parse_data(raw_data):
 
     return instructions
 
+
+# Will check if signals needed for the instruction is stored in the network
 def missing_signals_in_network(signals_in, network):
     tmp = ""
     if len(signals_in) > 1:
@@ -130,6 +136,7 @@ def missing_signals_in_network(signals_in, network):
         if not signal in network:
             return False
     print("Found: {signal1} {signal2}".format(signal1=tmp, signal2=signal))
+
     return True
 
 
@@ -138,14 +145,9 @@ def main(filename):
     raw_data = read_file(filename)
     instructions = parse_data(raw_data)
 
-    instructions_left = 1000
-
-    for dummy in range(400):
-        if instructions_left == len(instructions) or len(instructions) == 0:
-            print("Instructions not decreasing, qutiting")
-            break
-        instructins_left = len(instructions)
-        print("Going through instructions, iter: ({dummy}), instructions left: {length}".format(dummy=dummy, length=len(instructions)))
+    # Go through all instructions repetedly until no instructions left
+    while len(instructions) > 0:
+        print("Going through instructions - instructions left: {length}".format(length=len(instructions)))
         # print("Signals in network: {}".format(network.keys()))
         for idx, instruction in enumerate(instructions):
 
@@ -157,7 +159,6 @@ def main(filename):
                 instructions.pop(idx)
             elif missing_signals_in_network(instruction.get_signal_in(), network):
                 print("- {instruction}     \t- in: {signals_in}, out: {signals_out}, value: {value}, shift: {shift}".format(instruction=instruction.get_operator(), signals_in=instruction.get_signal_in(), signals_out=instruction.get_signal_out(), value=instruction.get_value(), shift=instruction.get_shift()))
-                # print("-- All missing signals found in network")
                 network[instruction.get_signal_out()] = instruction.get_calculated_value(network)
                 instructions.pop(idx)
 
@@ -174,10 +175,12 @@ def main(filename):
             if not signal in tmp:
                 tmp.append(signal)
         # print("{signal}".format(signal=instruction.get_signal_in()))
-    print("--- Missing in signals (count: {}) ---".format(len(tmp)))
+    print("--- Missing signals (count: {}) ---".format(len(tmp)))
     print(tmp)
     
-''' # This is to be used in the final solution for formating the output correctly
+# This can be used to format the signal correctly. 2**16 will show the signals
+# as if it was an unsigned integer.
+'''
         # Debug print content of the network dictionary
         for key in network.keys():
             print("key: -{}-".format(key))
@@ -190,4 +193,3 @@ def main(filename):
 if __name__ == "__main__":
     filename = "input"
     main(filename)
-    # 1674 -> b
