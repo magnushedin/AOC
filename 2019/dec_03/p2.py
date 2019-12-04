@@ -60,7 +60,7 @@ for line in lines:
 line_1 = line_coords[0]
 line_2 = line_coords[1]
 
-shortest = 99999999999
+shortest = 0
 
 print("Done adding coordinates")
 print("Length line_1: {}, lenght line_2: {}".format(len(line_1), len(line_2)))
@@ -70,7 +70,7 @@ for coord in line_1:
 	if coord in line_2:
 		tmp = line_1[coord] + line_2[coord]
 		#print(tmp)
-		if tmp < shortest:
+		if (tmp < shortest) or (shortest == 0):
 			shortest = tmp
 			print(shortest)
-print(shortest)
+print("Shortest found: {}".format(shortest))
