@@ -1,9 +1,6 @@
 """This is a Python file"""
-import ic
 
 input_file = open('./2019/dec_02/input')
-
-ic.test("Magnus")
 
 line = input_file.read()
 input_array = line.split(',')
