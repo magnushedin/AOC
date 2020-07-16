@@ -29,16 +29,6 @@ if __name__ == '__main__':
     start_number = 246515
     stop_number = 739105
 
-    print(haveSameNeighbour(123456))
-    print(haveSameNeighbour(123356))
-    print(haveSameNeighbour(133356))
-    print(haveSameNeighbour(123566))
-    print(haveSameNeighbour(113456))
-    print(haveSameNeighbour(112666))
-    print(haveSameNeighbour(111346))
-    print(haveSameNeighbour(111366))
-    print(haveSameNeighbour(699999))
-
     numbers_matching = 0
 
     for number in range(start_number, stop_number):

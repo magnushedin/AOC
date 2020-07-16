@@ -1,4 +1,9 @@
-input_file = open('input')
+"""This is a Python file"""
+import ic
+
+input_file = open('./2019/dec_02/input')
+
+ic.test("Magnus")
 
 line = input_file.read()
 input_array = line.split(',')
@@ -8,19 +13,22 @@ input_array[2] = 2
 
 #print(input_array)
 
-pc = 0
-while int(input_array[pc]) != 99:
-	#print("pc: {}, op: {}, {} +* {} => {}".format(pc, input_array[pc], input_array[pc+1], input_array[pc+2], input_array[pc+3]))
-	if int(input_array[pc]) == 1:
-		input_array[int(input_array[pc+3])] = int(input_array[int(input_array[pc+1])]) + int(input_array[int(input_array[pc+2])])
-		#print('add, s: {}'.format(input_array[pc+3]))
-	elif int(input_array[pc]) == 2:
-		input_array[int(input_array[pc+3])] = int(input_array[int(input_array[pc+1])]) * int(input_array[int(input_array[pc+2])])
-	else:
-		print('Wrong OP code {}'.format(input_array[pc]))
-		exit()
-	pc += 4
-	#print(input_array)
+PC = 0
+while int(input_array[PC]) != 99:
+    #print("PC: {}, op: {}, {} +* {} => {}".format(PC, input_array[PC], input_array[PC+1],
+    #input_array[PC+2], input_array[PC+3]))
+    if int(input_array[PC]) == 1:
+        input_array[int(input_array[PC+3])] = int(input_array[int(input_array[PC+1])]) + \
+                                              int(input_array[int(input_array[PC+2])])
+        #print('add, s: {}'.format(input_array[PC+3]))
+    elif int(input_array[PC]) == 2:
+        input_array[int(input_array[PC+3])] = int(input_array[int(input_array[PC+1])]) * \
+                                              int(input_array[int(input_array[PC+2])])
+    else:
+        print('Wrong OP code {}'.format(input_array[PC]))
+        exit()
+    PC += 4
+    #print(input_array)
 
 #print(input_array)
 print("answer is: {}".format(input_array[0]))
