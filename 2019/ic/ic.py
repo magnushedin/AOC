@@ -1,5 +1,15 @@
 """ IntCode Computer Module"""
 
+def get_instruction(opcode):
+    """ Returns the two first digits """
+    return opcode % 100
+
+def get_mode(opcode):
+    """ Returns the modes for parameters """
+    mode_list = [int((opcode % 1000) / 100),
+                 int((opcode % 10000) / 1000),
+                 int((opcode % 100000) / 10000)]
+    return mode_list
 class Ic:
     """ IntCode Computer Class"""
 
@@ -33,13 +43,6 @@ class Ic:
         """ Write value in memory """
         self.data[position] = value
 
-    def __get_instruction(self, opcode):
-        return opcode % 100
-
-    def __get_mode(self, opcode):
-        mode_list = [int((opcode % 1000) / 100), int((opcode % 10000) / 1000), int((opcode % 100000) / 10000)]
-        return mode_list
-
     def start_computer(self, p_c):
         """ Start the computer at given position """
         self.p_c = p_c
@@ -47,8 +50,8 @@ class Ic:
         print("Computer started at: {}".format(p_c))
         while True:
             opcode = self.get_operation()
-            instruction = self.__get_instruction(opcode)
-            modes = self.__get_mode(opcode)
+            instruction = get_instruction(opcode)
+            modes = get_mode(opcode)
             # print("PC: {}, instruction: {}".format(self.p_c, instruction))
             # print("..{}".format(self.data)) # for debugging
 
