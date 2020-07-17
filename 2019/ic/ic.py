@@ -13,10 +13,11 @@ def get_mode(opcode):
 class Ic:
     """ IntCode Computer Class"""
 
-    def __init__(self, file_name):
+    def __init__(self, file_name, system_id):
         """ Constructor """
         input_file = open(file_name)
         file_content = input_file.read()
+        self.system_id = system_id
         self.data = file_content.split(',')
         self.data = [int(value) for value in self.data]
         self.p_c = 0     # Program counter
@@ -97,7 +98,7 @@ class Ic:
                 self.__tick_computer(4)
             elif instruction == 3: # Read from input
                 print("input parameter: ", end='')
-                input_value = 1#input()
+                input_value = self.system_id
                 write_pos = self.get_value(self.p_c + 1)
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
