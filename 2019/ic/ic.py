@@ -33,14 +33,23 @@ class Ic:
         """ Write value in memory """
         self.data[position] = value
 
+    def __get_instruction(self, opcode):
+        return opcode % 100
+
+    def __get_mode(self, opcode):
+        mode_list = [int((opcode % 1000) / 100), int((opcode % 10000) / 1000), int((opcode % 100000) / 10000)]
+        return mode_list
+
     def start_computer(self, p_c):
         """ Start the computer at given position """
         self.p_c = p_c
 
         print("Computer started at: {}".format(p_c))
         while True:
-            instruction = self.get_operation()
-            print("PC: {}, instruction: {}".format(self.p_c, instruction))
+            opcode = self.get_operation()
+            instruction = self.__get_instruction(opcode)
+            modes = self.__get_mode(opcode)
+            # print("PC: {}, instruction: {}".format(self.p_c, instruction))
             # print("..{}".format(self.data)) # for debugging
 
             if instruction == 99: # Terminate program
@@ -52,8 +61,15 @@ class Ic:
                 read_pos_2 = self.get_value(self.p_c + 2)
                 write_pos = self.get_value(self.p_c + 3)
 
-                value_1 = self.get_value(read_pos_1)
-                value_2 = self.get_value(read_pos_2)
+                if modes[0] == 0:
+                    value_1 = self.get_value(read_pos_1)
+                else:
+                    value_1 = read_pos_1
+
+                if modes[1] == 0:
+                    value_2 = self.get_value(read_pos_2)
+                else:
+                    value_2 = read_pos_2
                 result_value = value_1 + value_2
 
                 self.write_value(write_pos, result_value)
@@ -63,15 +79,22 @@ class Ic:
                 read_pos_2 = self.get_value(self.p_c + 2)
                 write_pos = self.get_value(self.p_c + 3)
 
-                value_1 = self.get_value(read_pos_1)
-                value_2 = self.get_value(read_pos_2)
+                if modes[0] == 0:
+                    value_1 = self.get_value(read_pos_1)
+                else:
+                    value_1 = read_pos_1
+
+                if modes[1] == 0:
+                    value_2 = self.get_value(read_pos_2)
+                else:
+                    value_2 = read_pos_2
                 result_value = value_1 * value_2
 
                 self.write_value(write_pos, result_value)
                 self.__tick_computer(4)
             elif instruction == 3: # Read from input
                 print("input parameter: ", end='')
-                input_value = input()
+                input_value = 1#input()
                 write_pos = self.get_value(self.p_c + 1)
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
@@ -80,5 +103,6 @@ class Ic:
                 read_pos = self.get_value(self.p_c + 1)
                 read_value = self.get_value(read_pos)
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
+                self.__tick_computer(2)
             else:
                 raise Exception("Invalid op-code: {}".format(instruction))
