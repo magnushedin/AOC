@@ -94,14 +94,14 @@ class Ic:
 
             elif instruction == 3: # Read from input
                 print("input parameter: ", end='')
-                input_value = self.system_id
+                input_value = input()#self.system_id
                 write_pos = self.get_value(self.p_c + 1)
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
                 self.__tick_computer(2)
 
             elif instruction == 4: # Print value at position
-                read_pos = self.get_value(self.p_c + 1, 0)
+                read_pos = self.get_value(self.p_c + 1, modes[0])
                 read_value = self.get_value(read_pos)
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
                 self.__tick_computer(2)
@@ -131,8 +131,33 @@ class Ic:
                     self.__tick_computer(3)
 
             elif instruction == 7: # less than
-                pass
+                param_1_pos = self.get_value(self.p_c + 1)
+                param_2_pos = self.get_value(self.p_c + 2)
+                write_pos = self.get_value(self.p_c + 3)
+
+                value_1 = self.get_value(param_1_pos, modes[0])
+                value_2 = self.get_value(param_2_pos, modes[1])
+
+                if value_1 < value_2:
+                    self.write_value(write_pos, 1)
+                else:
+                    self.write_value(write_pos, 0)
+
+                self.__tick_computer(4)
+
             elif instruction == 8: # equals
-                pass
+                param_1_pos = self.get_value(self.p_c + 1)
+                param_2_pos = self.get_value(self.p_c + 2)
+                write_pos = self.get_value(self.p_c + 3)
+
+                value_1 = self.get_value(param_1_pos, modes[0])
+                value_2 = self.get_value(param_2_pos, modes[1])
+
+                if value_1 == value_2:
+                    self.write_value(write_pos, 1)
+                else:
+                    self.write_value(write_pos, 0)
+
+                self.__tick_computer(4)
             else:
                 raise Exception("Invalid op-code: {}".format(instruction))
