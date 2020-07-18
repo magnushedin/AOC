@@ -39,9 +39,12 @@ class Ic:
         #self.tick_computer(1)
         return instruction
 
-    def get_value(self, position):
+    def get_value(self, position, mode):
         """ Get value at given position """
-        return int(self.data[position])
+        if mode == 0:
+            return int(self.data[position])
+        else:
+            return position
 
     def write_value(self, position, value):
         """ Write value in memory """
@@ -65,38 +68,25 @@ class Ic:
                 break
 
             elif instruction == 1: # Add
-                read_pos_1 = self.get_value(self.p_c + 1)
-                read_pos_2 = self.get_value(self.p_c + 2)
-                write_pos = self.get_value(self.p_c + 3)
+                read_pos_1 = self.get_value(self.p_c + 1, 0)
+                read_pos_2 = self.get_value(self.p_c + 2, 0)
+                write_pos = self.get_value(self.p_c + 3, 0)
 
-                if modes[0] == 0:
-                    value_1 = self.get_value(read_pos_1)
-                else:
-                    value_1 = read_pos_1
-
-                if modes[1] == 0:
-                    value_2 = self.get_value(read_pos_2)
-                else:
-                    value_2 = read_pos_2
+                value_1 = self.get_value(read_pos_1, modes[0])
+                value_2 = self.get_value(read_pos_2, modes[1])
                 result_value = value_1 + value_2
 
                 self.write_value(write_pos, result_value)
                 self.__tick_computer(4)
 
             elif instruction == 2: # multiply
-                read_pos_1 = self.get_value(self.p_c + 1)
-                read_pos_2 = self.get_value(self.p_c + 2)
-                write_pos = self.get_value(self.p_c + 3)
+                read_pos_1 = self.get_value(self.p_c + 1, 0)
+                read_pos_2 = self.get_value(self.p_c + 2, 0)
+                write_pos = self.get_value(self.p_c + 3, 0)
 
-                if modes[0] == 0:
-                    value_1 = self.get_value(read_pos_1)
-                else:
-                    value_1 = read_pos_1
+                value_1 = self.get_value(read_pos_1, modes[0])
+                value_2 = self.get_value(read_pos_2, modes[1])
 
-                if modes[1] == 0:
-                    value_2 = self.get_value(read_pos_2)
-                else:
-                    value_2 = read_pos_2
                 result_value = value_1 * value_2
 
                 self.write_value(write_pos, result_value)
@@ -105,30 +95,23 @@ class Ic:
             elif instruction == 3: # Read from input
                 print("input parameter: ", end='')
                 input_value = self.system_id
-                write_pos = self.get_value(self.p_c + 1)
+                write_pos = self.get_value(self.p_c + 1, 0)
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
                 self.__tick_computer(2)
 
             elif instruction == 4: # Print value at position
-                read_pos = self.get_value(self.p_c + 1)
-                read_value = self.get_value(read_pos)
+                read_pos = self.get_value(self.p_c + 1, 0)
+                read_value = self.get_value(read_pos, 0)
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
                 self.__tick_computer(2)
 
             elif instruction == 5: # jump if true
-                read_pos = self.get_value(self.p_c + 1)
-                read_pc_pos = self.get_value(self.p_c + 2)
+                read_pos = self.get_value(self.p_c + 1, 0)
+                read_pc_pos = self.get_value(self.p_c + 2, 0)
 
-                if modes[0] == 0:
-                    eval_value = self.get_value(read_pos)
-                else:
-                    eval_value = read_pos
-
-                if modes[1] == 0:
-                    new_pc_pos = self.get_value(read_pc_pos)
-                else:
-                    new_pc_pos = read_pc_pos
+                eval_value = self.get_value(read_pos, modes[0])
+                new_pc_pos = self.get_value(read_pc_pos, modes[1])
 
                 if eval_value != 0:
                     self.__set_program_pointer(new_pc_pos)
@@ -136,18 +119,11 @@ class Ic:
                     self.__tick_computer(3)
 
             elif instruction == 6: # jump if false
-                read_pos = self.get_value(self.p_c + 1)
-                read_pc_pos = self.get_value(self.p_c + 2)
+                read_pos = self.get_value(self.p_c + 1, 0)
+                read_pc_pos = self.get_value(self.p_c + 2, 0)
 
-                if modes[0] == 0:
-                    eval_value = self.get_value(read_pos)
-                else:
-                    eval_value = read_pos
-
-                if modes[1] == 0:
-                    new_pc_pos = self.get_value(read_pc_pos)
-                else:
-                    new_pc_pos = read_pc_pos
+                eval_value = self.get_value(read_pos, modes[0])
+                new_pc_pos = self.get_value(read_pc_pos, modes[1])
 
                 if eval_value == 0:
                     self.__set_program_pointer(new_pc_pos)
