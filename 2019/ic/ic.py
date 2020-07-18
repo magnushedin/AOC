@@ -30,6 +30,9 @@ class Ic:
         else:
             self.p_c += steps
 
+    def __set_program_pointer(self, position):
+        self.p_c = position
+
     def get_operation(self):
         """ Returns operation at current program pointer """
         instruction = self.data[self.p_c]
@@ -60,6 +63,7 @@ class Ic:
                 print("OP-Code 99 found, terminating")
                 # print(self.data) # for debugging
                 break
+
             elif instruction == 1: # Add
                 read_pos_1 = self.get_value(self.p_c + 1)
                 read_pos_2 = self.get_value(self.p_c + 2)
@@ -78,6 +82,7 @@ class Ic:
 
                 self.write_value(write_pos, result_value)
                 self.__tick_computer(4)
+
             elif instruction == 2: # multiply
                 read_pos_1 = self.get_value(self.p_c + 1)
                 read_pos_2 = self.get_value(self.p_c + 2)
@@ -96,6 +101,7 @@ class Ic:
 
                 self.write_value(write_pos, result_value)
                 self.__tick_computer(4)
+
             elif instruction == 3: # Read from input
                 print("input parameter: ", end='')
                 input_value = self.system_id
@@ -103,10 +109,54 @@ class Ic:
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
                 self.__tick_computer(2)
+
             elif instruction == 4: # Print value at position
                 read_pos = self.get_value(self.p_c + 1)
                 read_value = self.get_value(read_pos)
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
                 self.__tick_computer(2)
+
+            elif instruction == 5: # jump if true
+                read_pos = self.get_value(self.p_c + 1)
+                read_pc_pos = self.get_value(self.p_c + 2)
+
+                if modes[0] == 0:
+                    eval_value = self.get_value(read_pos)
+                else:
+                    eval_value = read_pos
+
+                if modes[1] == 0:
+                    new_pc_pos = self.get_value(read_pc_pos)
+                else:
+                    new_pc_pos = read_pc_pos
+
+                if eval_value != 0:
+                    self.__set_program_pointer(new_pc_pos)
+                else:
+                    self.__tick_computer(3)
+
+            elif instruction == 6: # jump if false
+                read_pos = self.get_value(self.p_c + 1)
+                read_pc_pos = self.get_value(self.p_c + 2)
+
+                if modes[0] == 0:
+                    eval_value = self.get_value(read_pos)
+                else:
+                    eval_value = read_pos
+
+                if modes[1] == 0:
+                    new_pc_pos = self.get_value(read_pc_pos)
+                else:
+                    new_pc_pos = read_pc_pos
+
+                if eval_value == 0:
+                    self.__set_program_pointer(new_pc_pos)
+                else:
+                    self.__tick_computer(3)
+
+            elif instruction == 7: # less than
+                pass
+            elif instruction == 8: # equals
+                pass
             else:
                 raise Exception("Invalid op-code: {}".format(instruction))
