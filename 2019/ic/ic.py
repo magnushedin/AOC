@@ -13,15 +13,17 @@ def get_mode(opcode):
 class Ic:
     """ IntCode Computer Class"""
 
-    def __init__(self, file_name, system_id):
+    def __init__(self, file_name, input_value, phase, verbose=False):
         """ Constructor """
         input_file = open(file_name)
         file_content = input_file.read()
-        self.system_id = system_id
+        self.input_values = [input_value, phase]
         self.data = file_content.split(',')
         self.data = [int(value) for value in self.data]
         self.p_c = 0     # Program counter
         self.program_length = len(self.data)
+        self.printed_value = None
+        self.verbose = verbose
 
     def __tick_computer(self, steps):
         """ Tick the computer by moving program counter given steps ahead """
@@ -32,6 +34,10 @@ class Ic:
 
     def __set_program_pointer(self, position):
         self.p_c = position
+
+    def get_result(self):
+        """ Returns the last printed value by the computer. None if nothing printed yet """
+        return self.printed_value
 
     def get_operation(self):
         """ Returns operation at current program pointer """
@@ -54,7 +60,8 @@ class Ic:
         """ Start the computer at given position """
         self.p_c = p_c
 
-        print("Computer started at: {}".format(p_c))
+        if self.verbose:
+            print("Computer started at: {}".format(p_c))
         while True:
             opcode = self.get_operation()
             instruction = get_instruction(opcode)
@@ -63,7 +70,8 @@ class Ic:
             # print("..{}".format(self.data)) # for debugging
 
             if instruction == 99: # Terminate program
-                print("OP-Code 99 found, terminating")
+                if self.verbose:
+                    print("OP-Code 99 found, terminating")
                 # print(self.data) # for debugging
                 break
 
@@ -93,8 +101,10 @@ class Ic:
                 self.__tick_computer(4)
 
             elif instruction == 3: # Read from input
-                print("input parameter: ", end='')
-                input_value = input()#self.system_id
+                # print("input parameter: ", end='')
+                # input_value = input()
+                input_value = self.input_values.pop()
+                print("input: {}".format(input_value))
                 write_pos = self.get_value(self.p_c + 1)
                 self.write_value(write_pos, input_value)
                 # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
@@ -103,6 +113,7 @@ class Ic:
             elif instruction == 4: # Print value at position
                 read_pos = self.get_value(self.p_c + 1, modes[0])
                 read_value = self.get_value(read_pos)
+                self.printed_value = read_value
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
                 self.__tick_computer(2)
 
