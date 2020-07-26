@@ -13,17 +13,19 @@ def get_mode(opcode):
 class Ic:
     """ IntCode Computer Class"""
 
-    def __init__(self, file_name, input_value, phase, verbose=False):
+    def __init__(self, file_name, phase, verbose=False):
         """ Constructor """
         input_file = open(file_name)
         file_content = input_file.read()
-        self.input_values = [input_value, phase]
+        self.phase = phase
+        self.input_values = [phase]
         self.data = file_content.split(',')
         self.data = [int(value) for value in self.data]
         self.p_c = 0     # Program counter
         self.program_length = len(self.data)
         self.printed_value = None
         self.verbose = verbose
+        self.done = False
 
     def __tick_computer(self, steps):
         """ Tick the computer by moving program counter given steps ahead """
@@ -34,6 +36,16 @@ class Ic:
 
     def __set_program_pointer(self, position):
         self.p_c = position
+
+    def reset(self):
+        """ Resets the computer """
+        self.p_c = 0
+        self.input_values = [self.phase]
+        self.done = False
+
+    def is_done(self):
+        """ Returns weather the computer is done or not """
+        return self.done
 
     def get_result(self):
         """ Returns the last printed value by the computer. None if nothing printed yet """
@@ -52,16 +64,19 @@ class Ic:
         else:
             return position
 
+    def add_input(self, input_value):
+        """ Add input value for the computer """
+        self.input_values.append(input_value)
+
     def write_value(self, position, value):
         """ Write value in memory """
         self.data[position] = value
 
-    def start_computer(self, p_c):
+    def start_computer(self):
         """ Start the computer at given position """
-        self.p_c = p_c
 
         if self.verbose:
-            print("Computer started at: {}".format(p_c))
+            print("Computer started at: {}".format(self.p_c))
         while True:
             opcode = self.get_operation()
             instruction = get_instruction(opcode)
@@ -73,6 +88,9 @@ class Ic:
                 if self.verbose:
                     print("OP-Code 99 found, terminating")
                 # print(self.data) # for debugging
+                self.done = True
+                if self.verbose:
+                    print("Computer done")
                 break
 
             elif instruction == 1: # Add
@@ -103,12 +121,18 @@ class Ic:
             elif instruction == 3: # Read from input
                 # print("input parameter: ", end='')
                 # input_value = input()
-                input_value = self.input_values.pop()
-                print("input: {}".format(input_value))
-                write_pos = self.get_value(self.p_c + 1)
-                self.write_value(write_pos, input_value)
-                # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
-                self.__tick_computer(2)
+                if len(self.input_values) == 0:
+                    if self.verbose:
+                        print("Need input value")
+                    break
+                else:
+                    input_value = self.input_values.pop(0)
+                    if self.verbose:
+                        print("input: {}".format(input_value))
+                    write_pos = self.get_value(self.p_c + 1)
+                    self.write_value(write_pos, input_value)
+                    # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
+                    self.__tick_computer(2)
 
             elif instruction == 4: # Print value at position
                 read_pos = self.get_value(self.p_c + 1, modes[0])
