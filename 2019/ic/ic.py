@@ -8,17 +8,18 @@ def get_mode(opcode):
     """ Returns the modes for parameters """
     mode_list = [int((opcode % 1000) / 100),
                  int((opcode % 10000) / 1000),
-                 int((opcode % 100000) / 10000)]
+                 int((opcode % 100000) / 10000),
+                 int((opcode % 1000000) / 100000),
+                 int((opcode % 10000000) / 1000000)]
     return mode_list
 class Ic:
     """ IntCode Computer Class"""
 
-    def __init__(self, file_name, phase, verbose=False):
+    def __init__(self, file_name, verbose=False):
         """ Constructor """
         input_file = open(file_name)
         file_content = input_file.read()
-        self.phase = phase
-        self.input_values = [phase]
+        self.input_values = []
         self.data = file_content.split(',')
         self.data = [int(value) for value in self.data]
         self.p_c = 0     # Program counter
@@ -26,6 +27,7 @@ class Ic:
         self.printed_value = None
         self.verbose = verbose
         self.done = False
+        self.relative_offset = 0
 
     def __tick_computer(self, steps):
         """ Tick the computer by moving program counter given steps ahead """
@@ -37,10 +39,14 @@ class Ic:
     def __set_program_pointer(self, position):
         self.p_c = position
 
+    def __add_memory(self, instructions):
+        self.data = self.data + [0 for i in range(instructions)]
+        self.program_length = len(self.data)
+
     def reset(self):
         """ Resets the computer """
         self.p_c = 0
-        self.input_values = [self.phase]
+        self.input_values = []
         self.done = False
 
     def is_done(self):
@@ -59,10 +65,15 @@ class Ic:
 
     def get_value(self, position, mode=0):
         """ Get value at given position """
+        if position > self.program_length:
+            self.__add_memory(position)
+
         if mode == 0:
-            return int(self.data[position])
-        else:
+            return self.data[position]
+        elif mode == 1:
             return position
+        elif mode == 2:
+            return self.data[position + self.relative_offset]
 
     def add_input(self, input_value):
         """ Add input value for the computer """
@@ -70,6 +81,8 @@ class Ic:
 
     def write_value(self, position, value):
         """ Write value in memory """
+        if position > self.program_length:
+            self.__add_memory(position)
         self.data[position] = value
 
     def start_computer(self):
@@ -100,6 +113,10 @@ class Ic:
 
                 value_1 = self.get_value(read_pos_1, modes[0])
                 value_2 = self.get_value(read_pos_2, modes[1])
+
+                if modes[2] == 2:
+                    write_pos += self.relative_offset
+
                 result_value = value_1 + value_2
 
                 self.write_value(write_pos, result_value)
@@ -112,6 +129,9 @@ class Ic:
 
                 value_1 = self.get_value(read_pos_1, modes[0])
                 value_2 = self.get_value(read_pos_2, modes[1])
+
+                if modes[2] == 2:
+                    write_pos += self.relative_offset
 
                 result_value = value_1 * value_2
 
@@ -129,13 +149,18 @@ class Ic:
                     input_value = self.input_values.pop(0)
                     if self.verbose:
                         print("input: {}".format(input_value))
+
                     write_pos = self.get_value(self.p_c + 1)
+                    if modes[0] == 2:
+                        write_pos += self.relative_offset
                     self.write_value(write_pos, input_value)
                     # print("{}, {}".format(write_pos, self.get_value(write_pos))) # for debugging
                     self.__tick_computer(2)
 
             elif instruction == 4: # Print value at position
-                read_pos = self.get_value(self.p_c + 1, modes[0])
+                read_pos = self.get_value(self.p_c + 1)
+                if modes[0] == 2:
+                    read_pos += self.relative_offsets
                 read_value = self.get_value(read_pos)
                 self.printed_value = read_value
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
@@ -173,6 +198,9 @@ class Ic:
                 value_1 = self.get_value(param_1_pos, modes[0])
                 value_2 = self.get_value(param_2_pos, modes[1])
 
+                if modes[2] == 2:
+                    write_pos += self.relative_offset
+
                 if value_1 < value_2:
                     self.write_value(write_pos, 1)
                 else:
@@ -188,11 +216,22 @@ class Ic:
                 value_1 = self.get_value(param_1_pos, modes[0])
                 value_2 = self.get_value(param_2_pos, modes[1])
 
+                if modes[2] == 2:
+                    write_pos += self.relative_offset
+
+
                 if value_1 == value_2:
                     self.write_value(write_pos, 1)
                 else:
                     self.write_value(write_pos, 0)
 
                 self.__tick_computer(4)
+
+            elif instruction == 9:
+                param_1_pos = self.get_value(self.p_c + 1)
+                relative_offset_delta = self.get_value(param_1_pos, modes[0])
+                self.relative_offset += relative_offset_delta
+                self.__tick_computer(2)
+
             else:
                 raise Exception("Invalid op-code: {}".format(instruction))
