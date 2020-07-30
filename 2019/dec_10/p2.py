@@ -2,6 +2,7 @@
 
 import sys
 import math
+import operator
 import fractions as fr
 
 FILENAME = "./2019/dec_10/input_ex1"
@@ -18,8 +19,8 @@ lines = input_file.readlines()
 
 def get_angel(coordinates):
     """ Both x and y can't be zero at the same time """
-    y = coordinates[0]
-    x = coordinates[1]
+    x = coordinates[0]
+    y = coordinates[1]
 
     if x == 0:
         if y < 0:
@@ -35,12 +36,12 @@ def get_angel(coordinates):
 
     if x >= 0:
         if y >= 0:
-            return math.pi/2 + math.atan(abs(y)/abs(x))
+            return ((math.pi / 2) + math.atan(abs(y)/abs(x)))
         else:
             return math.atan(abs(x)/abs(y))
     else:
         if y >= 0:
-            return math.pi / 2 + math.atan(abs(x)/abs(y))
+            return math.pi + math.atan(abs(x)/abs(y))
         else:
             return  (3/2) * math.pi + math.atan(abs(y)/abs(x))
 
@@ -63,8 +64,10 @@ distance. Save uniqe 'direction - distance' combinations to a dict. When all ast
 count entries in the dict with 'direction - distance' combinations.
 """
 
-# input (29,28)
-for monitor_station in [(11, 13)]:
+base_station = (29,28)
+#base_station = (11, 13)
+
+for monitor_station in [base_station]:
     #print("\nMonitor station: {}".format(monitor_station))
     astroid_directions = []
     for target_astroid in astroids:
@@ -81,7 +84,7 @@ for monitor_station in [(11, 13)]:
                 y_sign = int(y_vector/abs(y_vector))
                 x_sign = int(x_vector/abs(x_vector))
                 tmp_fraction = fr.Fraction(abs(y_vector), abs(x_vector))
-                tmp_direction = (y_sign * tmp_fraction.numerator, x_sign * tmp_fraction.denominator)
+                tmp_direction = (x_sign * tmp_fraction.denominator, y_sign * tmp_fraction.numerator)
                 # print(" - -", end='')
             except ZeroDivisionError:
                 # print(" - z", end='')
@@ -89,7 +92,7 @@ for monitor_station in [(11, 13)]:
                     y_vector = int(y_vector/abs(y_vector))
                 if abs(x_vector) > 0:
                     x_vector = int(x_vector/abs(x_vector))
-                tmp_direction = (y_vector, x_vector)
+                tmp_direction = (x_vector, y_vector)
 
             # Add astroid to list
             # Calculate the angle (direction) and save in the list.
@@ -101,7 +104,18 @@ for monitor_station in [(11, 13)]:
 
 astroid_directions.sort()
 
+laser_hit_by_angle = dict()
+
 for astroid in astroid_directions:
-    # add list in dictionary, key should be angle. Get list with keys from dictionary and run through
+    # add list in a dictionary, key should be angle. Get list with keys from dictionary and run through
     # that list. Pop items and remove entry in dict if no more items in list.
     print(astroid)
+    if astroid[0] in laser_hit_by_angle:
+        laser_hit_by_angle[astroid[0]].append(astroid)
+        laser_hit_by_angle[astroid[0]] = sorted(laser_hit_by_angle[astroid[0]], key=operator.itemgetter(3))
+    else:
+        laser_hit_by_angle[astroid[0]] = [astroid]
+
+print("\nlaser_hit_by_angle")
+for idx, key in enumerate(laser_hit_by_angle.keys()):
+    print("{} ({:.2f}): {}".format(idx+1, 360 * (laser_hit_by_angle[key][0][0] / (2 * math.pi)), laser_hit_by_angle[key].pop(0)))
