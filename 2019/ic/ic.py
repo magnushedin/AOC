@@ -19,15 +19,21 @@ class Ic:
         """ Constructor """
         input_file = open(file_name)
         file_content = input_file.read()
+        self.file_name = file_name
         self.input_values = []
         self.data = file_content.split(',')
         self.data = [int(value) for value in self.data]
         self.p_c = 0     # Program counter
         self.program_length = len(self.data)
-        self.printed_value = None
+        self.output = []
         self.verbose = verbose
         self.done = False
         self.relative_offset = 0
+
+        if self.verbose:
+            print("Initializing computer in verbose mode")
+            print("Input file: {}".format(self.file_name))
+            print("Program length: {}".format(self.program_length))
 
     def __tick_computer(self, steps):
         """ Tick the computer by moving program counter given steps ahead """
@@ -55,7 +61,12 @@ class Ic:
 
     def get_result(self):
         """ Returns the last printed value by the computer. None if nothing printed yet """
-        return self.printed_value
+        if len(self.output) > 0:
+            output = self.output.pop(0)
+        else:
+            output = None
+
+        return output
 
     def get_operation(self):
         """ Returns operation at current program pointer """
@@ -162,7 +173,7 @@ class Ic:
                 if modes[0] == 2:
                     read_pos += self.relative_offsets
                 read_value = self.get_value(read_pos)
-                self.printed_value = read_value
+                self.output.append(read_value)
                 print("Print instruction, pos: {}, value: {}".format(read_pos, read_value))
                 self.__tick_computer(2)
 

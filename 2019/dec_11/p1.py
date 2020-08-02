@@ -14,11 +14,19 @@ class robot:
         self.grid = grid
 
     def start_robot(self):
+        """ Start the robot """
+        #TODO: Read the instructions to fix the behaviour of this robot.
+        self.int_comp.start_computer()
         while True:
-            next_instruction = self.int_comp.start_computer()
-            if next_instruction == ???:
+            next_instruction = self.int_comp.get_result()
+            if next_instruction is None:
                 self.print_grid()
                 break
+            else:
+                #TODO: Use the result to print in the grid.
+                # Then add input to to computer and start again.
+                tmp = self.int_comp.get_result()
+                self.int_comp.add_input(0)
 
     def get_grid(self):
         """ Returns the current grid """
